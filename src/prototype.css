@@ -97,6 +97,30 @@
 .autosave-line.error { color: #b42318; }
 .autosave-line.error span { color: #b42318; }
 
+.editing-banner {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 38px;
+  margin: 10px 0 0;
+  padding: 0 10px;
+  border-left: 3px solid var(--kaizen-orange);
+  background: #fff6df;
+  color: #704900;
+  font-size: 11px;
+}
+
+.editing-banner button {
+  margin-left: auto;
+  padding: 5px 7px;
+  border: 1px solid #d9af54;
+  border-radius: 4px;
+  background: white;
+  color: #704900;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .line-section {
   margin: 0 -18px;
   padding: 12px 18px 14px;
@@ -409,16 +433,24 @@
 .mobile-list-summary strong { color: var(--kaizen-blue); font: 700 28px/1 "Roboto Condensed", sans-serif; }
 .mobile-record-list, .desktop-record-list { border-top: 1px solid var(--kaizen-line); }
 
-.record-row { display: grid; grid-template-columns: 66px minmax(0, 1fr) 78px; gap: 12px; align-items: start; padding: 15px 0; border-bottom: 1px solid var(--kaizen-line); }
-.mobile-record-list .record-row { grid-template-columns: minmax(0, 1fr) 58px; gap: 9px; padding: 12px 0; }
+.record-row { display: grid; grid-template-columns: 66px minmax(0, 1fr) 102px; gap: 12px; align-items: start; padding: 15px 0; border-bottom: 1px solid var(--kaizen-line); }
+.mobile-record-list .record-row { grid-template-columns: minmax(0, 1fr) 74px; gap: 9px; padding: 12px 0; }
 .mobile-record-list .record-date { grid-column: 1 / -1; margin-bottom: -3px; }
 .record-date { color: #667b8b; font: 600 11px/1.2 "Roboto Condensed", sans-serif; }
 .record-meta { display: flex; gap: 5px; margin-bottom: 5px; }
 .record-meta span { padding: 2px 5px; border-radius: 3px; background: #deedf6; color: var(--kaizen-blue-deep); font-size: 9px; font-weight: 700; }
 .record-main p { margin: 0; color: var(--kaizen-ink); font-size: 12px; line-height: 1.6; }
 .record-effect { margin-top: 6px; color: #5b7180; font-size: 10px; line-height: 1.55; }
+.record-utilities { display: grid; gap: 7px; }
 .record-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .record-photos img, .record-photos span { display: grid; width: 100%; aspect-ratio: 1; place-items: center; border-radius: 3px; background: #e4ebf0; object-fit: cover; color: #98a8b4; }
+.record-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.record-actions button { display: flex; gap: 3px; align-items: center; justify-content: center; min-height: 27px; padding: 0 4px; border: 1px solid #b9cbd8; border-radius: 4px; background: white; color: var(--kaizen-blue); font-size: 9px; font-weight: 700; }
+.record-actions button.danger { border-color: #e3c4c1; color: #b42318; }
+.record-actions button:hover { background: #edf6fb; }
+.record-actions button.danger:hover { background: #fff2f0; }
+.mobile-record-list .record-actions { grid-template-columns: 1fr; }
+.mobile-record-list .record-actions button { min-height: 30px; }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 58px 20px; color: #748693; text-align: center; }
 .empty-state > svg { width: 32px; height: 32px; margin-bottom: 12px; color: var(--kaizen-blue); }
@@ -434,8 +466,25 @@ input:focus-visible,
 textarea:focus-visible { outline: 2px solid var(--kaizen-orange); outline-offset: 2px; }
 
 @media (min-width: 1180px) {
-  .phone-stage { z-index: 1; place-items: center end; padding-right: 34px; background: #eaf1f5; pointer-events: none; }
-  .phone-device, .device-menu-bar { pointer-events: auto; }
+  .phone-stage { position: fixed; z-index: 1; inset: 0 0 0 auto; display: block; width: 500px; height: 100%; padding: 0; border-left: 1px solid #cbd8e1; background: var(--kaizen-paper); pointer-events: auto; }
+  .device-menu-bar,
+  .phone-bezel,
+  .device-camera,
+  .status-bar,
+  .home-indicator-svg,
+  .android-navigation-bar,
+  .mobile-cursor,
+  .keyboard-dock { display: none !important; }
+  .phone-scale-box { width: 100% !important; height: 100% !important; }
+  .phone-device { position: fixed !important; inset: 0 0 0 auto !important; width: 500px !important; height: 100% !important; transform: none !important; user-select: auto; }
+  .device-screen { position: fixed !important; inset: 0 0 0 auto !important; width: 500px !important; height: 100dvh !important; border-radius: 0 !important; box-shadow: none; cursor: auto; user-select: auto; }
+  .device-screen,
+  .device-screen * { cursor: auto !important; }
+  .mobile-app-viewport { position: fixed; inset: 0 0 0 auto !important; width: 500px; }
+  .device-screen .mobile-page { --mobile-safe-area-height: 0px !important; --keyboard-height: 0px !important; }
+  .device-screen .mobile-scroll { bottom: 0 !important; }
+  .kaizen-app { padding: 0 18px 28px; }
+  .mobile-header { padding-top: 20px; }
   .desktop-shell { position: fixed; z-index: 4; inset: 0 500px 0 0; display: flex; flex-direction: column; overflow: hidden; padding: 34px 38px 26px; background: #f8fafb; color: var(--kaizen-ink); font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; }
   .desktop-header { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 21px; border-bottom: 2px solid var(--kaizen-blue); }
   .desktop-eyebrow { color: var(--kaizen-cyan); font: 700 10px/1 "Roboto Condensed", sans-serif; letter-spacing: 0.14em; }
@@ -450,9 +499,101 @@ textarea:focus-visible { outline: 2px solid var(--kaizen-orange); outline-offset
   .desktop-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 145px 165px; gap: 9px; margin-bottom: 16px; }
   .search-control, .select-control { display: flex; gap: 8px; align-items: center; min-height: 40px; padding: 0 11px; border: 1px solid #c5d1da; border-radius: 5px; background: white; color: #7c8e9a; }
   .search-control input, .select-control select { width: 100%; border: 0; outline: 0; appearance: none; background: transparent; color: #344a5b; font: 500 12px/1 "Noto Sans SC", sans-serif; }
-  .desktop-table-head { display: grid; grid-template-columns: 66px minmax(0, 1fr) 78px; gap: 12px; padding: 9px 0; border-top: 1px solid #c9d5dd; border-bottom: 1px solid #c9d5dd; color: #617684; font-size: 10px; font-weight: 800; }
+  .desktop-table-head { display: grid; grid-template-columns: 66px minmax(0, 1fr) 102px; gap: 12px; padding: 9px 0; border-top: 1px solid #c9d5dd; border-bottom: 1px solid #c9d5dd; color: #617684; font-size: 10px; font-weight: 800; }
   .desktop-record-list { flex: 1; overflow: auto; border-top: 0; scrollbar-width: thin; }
   .desktop-record-list .record-main p { font-size: 12px; }
+}
+
+@media (max-width: 767px) {
+  body { overflow: hidden; }
+
+  .phone-stage {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+  }
+
+  .device-menu-bar,
+  .phone-bezel,
+  .device-camera,
+  .status-bar,
+  .home-indicator-svg,
+  .android-navigation-bar,
+  .mobile-cursor,
+  .keyboard-dock {
+    display: none !important;
+  }
+
+  .phone-scale-box {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .phone-device {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    user-select: auto;
+  }
+
+  .device-screen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    overflow: hidden;
+    border-radius: 0 !important;
+    box-shadow: none;
+    cursor: auto;
+    user-select: auto;
+  }
+
+  .device-screen,
+  .device-screen * {
+    cursor: auto !important;
+  }
+
+  .mobile-app-viewport {
+    position: fixed;
+    inset: 0 !important;
+  }
+
+  .device-screen .mobile-page {
+    --mobile-safe-area-height: env(safe-area-inset-bottom, 0px) !important;
+    --keyboard-height: 0px !important;
+  }
+
+  .device-screen .mobile-scroll {
+    bottom: 0 !important;
+  }
+
+  .kaizen-app {
+    min-height: 100%;
+    padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  }
+
+  .mobile-header {
+    margin: 0 -14px;
+    padding: calc(env(safe-area-inset-top, 0px) + 15px) 14px 16px;
+  }
+
+  .line-section {
+    margin: 0 -14px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .save-zone {
+    margin-right: -14px;
+    margin-bottom: calc(-1 * (env(safe-area-inset-bottom, 0px) + 24px));
+    margin-left: -14px;
+    padding-right: 14px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 11px);
+    padding-left: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

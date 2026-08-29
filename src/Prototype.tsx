@@ -14,6 +14,7 @@ import {
   ReloadIcon,
   SewingPinIcon,
   SpeakerLoudIcon,
+  TrashIcon,
   UploadIcon,
 } from "@radix-ui/react-icons";
 import { KeyboardTextarea, MobileScroll, useKeyboard } from "./mobile";
@@ -367,7 +368,17 @@ async function exportWorkbook(records: ImprovementRecord[], selectedLine: "全�
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function RecordList({ records, compact = false }: { records: ImprovementRecord[]; compact?: boolean }) {
+function RecordList({
+  records,
+  compact = false,
+  onEdit,
+  onDelete,
+}: {
+  records: ImprovementRecord[];
+  compact?: boolean;
+  onEdit: (record: ImprovementRecord) => void;
+  onDelete: (record: ImprovementRecord) => void;
+}) {
   if (records.length === 0) {
     return <div className="empty-state"><FileTextIcon /><strong>还没有改善记录</strong><span>保存第一条后会显示在这里</span></div>;
   }
@@ -384,8 +395,14 @@ function RecordList({ records, compact = false }: { records: ImprovementRecord[]
               <p><strong>{parts.title}</strong>{parts.body}</p>
               <div className="record-effect">{record.effect}</div>
             </div>
-            <div className="record-photos" aria-label="改善照片">
-              {[record.beforePhoto, record.afterPhoto].map((photo, index) => photo ? <img key={index} src={photo.dataUrl} alt={index === 0 ? "改善前" : "改善后"} /> : <span key={index}><ImageIcon /></span>)}
+            <div className="record-utilities">
+              <div className="record-photos" aria-label="改善照片">
+                {[record.beforePhoto, record.afterPhoto].map((photo, index) => photo ? <img key={index} src={photo.dataUrl} alt={index === 0 ? "改善前" : "改善后"} /> : <span key={index}><ImageIcon /></span>)}
+              </div>
+              <div className="record-actions">
+                <button type="button" onClick={() => onEdit(record)} aria-label="编辑改善记录"><Pencil2Icon /><span>编辑</span></button>
+                <button className="danger" type="button" onClick={() => onDelete(record)} aria-label="删除改善记录"><TrashIcon /><span>删除</span></button>
+              </div>
             </div>
           </article>
         );
@@ -394,7 +411,15 @@ function RecordList({ records, compact = false }: { records: ImprovementRecord[]
   );
 }
 
-function DesktopDashboard({ records }: { records: ImprovementRecord[] }) {
+function DesktopDashboard({
+  records,
+  onEdit,
+  onDelete,
+}: {
+  records: ImprovementRecord[];
+  onEdit: (record: ImprovementRecord) => void;
+  onDelete: (record: ImprovementRecord) => void;
+}) {
   const [lineFilter, setLineFilter] = useState<"全部线体" | LineName>("全部线体");
   const [typeFilter, setTypeFilter] = useState<"全部类型" | ImprovementType>("全部类型");
   const [query, setQuery] = useState("");
@@ -425,8 +450,8 @@ function DesktopDashboard({ records }: { records: ImprovementRecord[] }) {
         <label className="select-control"><SewingPinIcon /><select value={lineFilter} onChange={(event) => setLineFilter(event.target.value as "全部线体" | LineName)}><option>全部线体</option>{LINES.map((item) => <option key={item}>{item}</option>)}</select></label>
         <label className="select-control"><MixerHorizontalIcon /><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as "全部类型" | ImprovementType)}><option>全部类型</option>{TYPES.map((item) => <option key={item}>{item}</option>)}</select></label>
       </div>
-      <div className="desktop-table-head"><span>日期</span><span>改善内容 / 效果</span><span>照片</span></div>
-      <RecordList records={visibleRecords} />
+      <div className="desktop-table-head"><span>日期</span><span>改善内容 / 效果</span><span>照片 / 操作</span></div>
+      <RecordList records={visibleRecords} onEdit={onEdit} onDelete={onDelete} />
     </section>
   );
 }
@@ -452,6 +477,8 @@ export default function Prototype() {
   const [listLine, setListLine] = useState<"全部线体" | LineName>("全部线体");
   const [exporting, setExporting] = useState(false);
   const [listening, setListening] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   const typeMatch = useMemo(() => inferImprovementType(raw), [raw]);
   const resolvedType = useMemo<ImprovementType>(() => {
@@ -509,17 +536,64 @@ export default function Prototype() {
     recognition.start();
   };
 
+  const beginEdit = (record: ImprovementRecord) => {
+    keyboard.hide();
+    setEditingId(record.id);
+    setLine(record.line);
+    setTypeChoice(record.type);
+    setRaw(record.raw);
+    setContent(record.content);
+    setEffect(record.effect);
+    setNote(record.note);
+    setBeforePhoto(record.beforePhoto);
+    setAfterPhoto(record.afterPhoto);
+    setSaved(false);
+    setView("capture");
+    window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-testid="mobile-scroll"]')?.scrollTo({ top: 0 }));
+  };
+
+  const deleteRecord = (record: ImprovementRecord) => {
+    if (!window.confirm("确认删除这条改善记录？删除后无法恢复。")) return;
+    setRecords((current) => current.filter((item) => item.id !== record.id));
+    if (editingId === record.id) setEditingId(null);
+    setToastMessage("改善记录已删除");
+    window.setTimeout(() => setToastMessage(""), 2200);
+  };
+
+  const cancelEdit = () => {
+    keyboard.hide();
+    setEditingId(null);
+    setView("records");
+  };
+
   const save = () => {
     if (!content.trim() || !effect.trim()) { window.alert("请先完成改善内容和改善效果"); return; }
     keyboard.hide();
-    const record: ImprovementRecord = { id: crypto.randomUUID(), line, type: resolvedType, raw, content, effect, beforePhoto, afterPhoto, createdAt: formatChineseDate(new Date()), note };
-    setRecords((current) => [record, ...current]);
+    const existingRecord = editingId ? records.find((record) => record.id === editingId) : undefined;
+    const record: ImprovementRecord = {
+      id: existingRecord?.id ?? crypto.randomUUID(),
+      line,
+      type: resolvedType,
+      raw,
+      content,
+      effect,
+      beforePhoto,
+      afterPhoto,
+      createdAt: existingRecord?.createdAt ?? formatChineseDate(new Date()),
+      note,
+    };
+    setRecords((current) => existingRecord
+      ? current.map((item) => item.id === existingRecord.id ? record : item)
+      : [record, ...current]);
     const savedAt = new Date().toISOString();
     setLastSavedAt(savedAt);
     setDraftStatus("saved");
     setLastSavedType(resolvedType);
     setSaved(true);
+    setToastMessage(existingRecord ? "改善记录已更新" : `改善记录已保存 · ${resolvedType}`);
+    setEditingId(null);
     window.setTimeout(() => setSaved(false), 2200);
+    window.setTimeout(() => setToastMessage(""), 2200);
   };
 
   const exportMobile = async () => {
@@ -542,6 +616,7 @@ export default function Prototype() {
 
           {view === "capture" ? (
             <div className="capture-flow">
+              {editingId ? <div className="editing-banner"><Pencil2Icon /><strong>正在编辑已保存记录</strong><button type="button" onClick={cancelEdit}>取消编辑</button></div> : null}
               <div className={`autosave-line ${draftStatus}`}>
                 {draftStatus === "saving" ? <ReloadIcon className="spin" /> : <CheckCircledIcon />}
                 <strong>{draftStatus === "saving" ? "草稿保存中…" : draftStatus === "error" ? "草稿保存失败" : "草稿已保存"}</strong>
@@ -573,9 +648,9 @@ export default function Prototype() {
                 <div className="step-track"><span>2</span><i /></div>
                 <section className="step-content result-section">
                   <div className="result-label"><span>AI整理的表述</span><em>可编辑</em><Pencil2Icon /></div>
-                  <KeyboardTextarea className="result-textarea" value={content} onChange={(event) => setContent(event.target.value)} maxLength={500} />
+                  <KeyboardTextarea aria-label="改善内容" className="result-textarea" value={content} onChange={(event) => setContent(event.target.value)} maxLength={500} />
                   <div className="result-label effect-label"><span>改善效果</span><em>可编辑</em><Pencil2Icon /></div>
-                  <KeyboardTextarea className="effect-textarea" value={effect} onChange={(event) => setEffect(event.target.value)} maxLength={300} />
+                  <KeyboardTextarea aria-label="改善效果" className="effect-textarea" value={effect} onChange={(event) => setEffect(event.target.value)} maxLength={300} />
                 </section>
               </div>
 
@@ -588,7 +663,7 @@ export default function Prototype() {
                 </section>
               </div>
 
-              <div className="save-zone"><button className="save-button" type="button" onClick={save}>{saved ? <CheckCircledIcon /> : <FileTextIcon />}{saved ? "已保存" : "保存改善"}</button><span>{formatChineseDate(new Date())}</span></div>
+              <div className="save-zone"><button className="save-button" type="button" onClick={save}>{saved ? <CheckCircledIcon /> : editingId ? <Pencil2Icon /> : <FileTextIcon />}{saved ? "已保存" : editingId ? "保存修改" : "保存改善"}</button><span>{formatChineseDate(new Date())}</span></div>
             </div>
           ) : (
             <section className="records-screen">
@@ -597,13 +672,13 @@ export default function Prototype() {
                 <button type="button" onClick={() => void exportMobile()} disabled={exporting}>{exporting ? <ReloadIcon className="spin" /> : <FileTextIcon />}{exporting ? "生成中" : "导出"}</button>
               </div>
               <div className="mobile-list-summary"><strong>{mobileRecords.length}</strong><span>条改善记录</span></div>
-              <RecordList records={mobileRecords} compact />
+              <RecordList records={mobileRecords} compact onEdit={beginEdit} onDelete={deleteRecord} />
             </section>
           )}
         </main>
       </MobileScroll>
-      {saved ? <div className="save-toast"><CheckCircledIcon />改善记录已保存 · {lastSavedType}</div> : null}
-      {createPortal(<DesktopDashboard records={records} />, document.body)}
+      {toastMessage ? <div className="save-toast"><CheckCircledIcon />{toastMessage}</div> : null}
+      {createPortal(<DesktopDashboard records={records} onEdit={beginEdit} onDelete={deleteRecord} />, document.body)}
     </>
   );
 }
