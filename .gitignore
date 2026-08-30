@@ -26,3 +26,7 @@ Thumbs.db
 # Generated previews and inspection artifacts
 implementation-mobile-screen*.png
 *.inspect.ndjson
+
+# Locally exported improvement spreadsheets
+*.xlsx
+*.xls
