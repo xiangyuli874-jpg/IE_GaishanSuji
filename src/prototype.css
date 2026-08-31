@@ -30,9 +30,23 @@
   font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
 }
 
+.kaizen-composer {
+  position: absolute;
+  inset: 0;
+  --save-bottom-inset: 0px;
+}
+
+.native-mobile-scroll {
+  touch-action: pan-y;
+  overscroll-behavior-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.native-mobile-scroll .mobile-scroll-content { transform: none !important; }
+
 .kaizen-app {
   min-height: 100%;
-  padding: 60px 18px calc(var(--mobile-safe-area-height) + 28px);
+  padding: 60px 18px calc(var(--mobile-safe-area-height) + 112px);
 }
 
 .mobile-header {
@@ -309,31 +323,11 @@
   line-height: 1.8;
 }
 
-.input-tools {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 9px 9px 14px;
+.raw-count {
+  padding: 7px 14px 9px;
   color: #7c8b97;
   font-size: 10px;
-}
-
-.input-tools button {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 4px;
-  background: #e5f5fa;
-  color: var(--kaizen-blue);
-  font-weight: 700;
-}
-
-.input-tools button.listening {
-  background: #fff1cf;
-  color: #9a5d00;
+  text-align: right;
 }
 
 .optimize-button {
@@ -408,11 +402,12 @@
 .note-field textarea { min-height: 58px; margin-top: 5px; padding: 9px; border: 1px solid #c8d3dc; border-radius: 5px; background: white; font-size: 12px; font-weight: 400; }
 
 .save-zone {
-  position: sticky;
-  z-index: 8;
+  position: absolute;
+  z-index: 12;
+  right: 0;
   bottom: 0;
-  margin: 24px -18px calc(-1 * (var(--mobile-safe-area-height) + 28px));
-  padding: 11px 18px calc(var(--mobile-safe-area-height) + 11px);
+  left: 0;
+  padding: 11px 18px calc(var(--save-bottom-inset) + 11px);
   border-top: 1px solid #cfdae2;
   background: rgba(245, 248, 250, 0.96);
   backdrop-filter: blur(10px);
@@ -483,7 +478,7 @@ textarea:focus-visible { outline: 2px solid var(--kaizen-orange); outline-offset
   .mobile-app-viewport { position: fixed; inset: 0 0 0 auto !important; width: 500px; }
   .device-screen .mobile-page { --mobile-safe-area-height: 0px !important; --keyboard-height: 0px !important; }
   .device-screen .mobile-scroll { bottom: 0 !important; }
-  .kaizen-app { padding: 0 18px 28px; }
+  .kaizen-app { padding: 0 18px 112px; }
   .mobile-header { padding-top: 20px; }
   .desktop-shell { position: fixed; z-index: 4; inset: 0 500px 0 0; display: flex; flex-direction: column; overflow: hidden; padding: 34px 38px 26px; background: #f8fafb; color: var(--kaizen-ink); font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; }
   .desktop-header { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 21px; border-bottom: 2px solid var(--kaizen-blue); }
@@ -572,8 +567,10 @@ textarea:focus-visible { outline: 2px solid var(--kaizen-orange); outline-offset
 
   .kaizen-app {
     min-height: 100%;
-    padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 112px);
   }
+
+  .kaizen-composer { --save-bottom-inset: env(safe-area-inset-bottom, 0px) !important; }
 
   .mobile-header {
     margin: 0 -14px;
@@ -587,9 +584,6 @@ textarea:focus-visible { outline: 2px solid var(--kaizen-orange); outline-offset
   }
 
   .save-zone {
-    margin-right: -14px;
-    margin-bottom: calc(-1 * (env(safe-area-inset-bottom, 0px) + 24px));
-    margin-left: -14px;
     padding-right: 14px;
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 11px);
     padding-left: 14px;

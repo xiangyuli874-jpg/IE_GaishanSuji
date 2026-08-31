@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PropsWithChildren } from "react";
 import { createPortal } from "react-dom";
 import {
   CameraIcon,
@@ -13,11 +13,10 @@ import {
   PlusIcon,
   ReloadIcon,
   SewingPinIcon,
-  SpeakerLoudIcon,
   TrashIcon,
   UploadIcon,
 } from "@radix-ui/react-icons";
-import { KeyboardTextarea, MobileScroll, useKeyboard } from "./mobile";
+import { KeyboardTextarea, MobileScroll, useKeyboard, useKeyboardInsets } from "./mobile";
 
 const LINES = ["A线", "B线", "C线", "D线", "E线", "H线", "部装", "底座线"] as const;
 const TYPES = ["LOB改善", "线体布局调整", "MCP改善", "POU改善", "品质改善", "其他"] as const;
@@ -29,6 +28,31 @@ type ImprovementType = (typeof TYPES)[number];
 type TypeChoice = ImprovementType | typeof AUTO_TYPE;
 type PhotoValue = { name: string; dataUrl: string } | null;
 type DraftStatus = "saving" | "saved" | "error";
+
+function NativeMobileScroll({ className, children }: PropsWithChildren<{ className?: string }>) {
+  return (
+    <section className={`mobile-page ${className ?? ""}`} data-scroll-mode="native">
+      <div className="mobile-scroll native-mobile-scroll" data-testid="mobile-scroll" data-scroll-mode="native">
+        <div className="mobile-scroll-content" data-testid="mobile-scroll-content">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function useNativePhoneScroll() {
+  const query = "(max-width: 767px)";
+  const [isNativePhone, setIsNativePhone] = useState(() => window.matchMedia(query).matches);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const sync = () => setIsNativePhone(mediaQuery.matches);
+    sync();
+    mediaQuery.addEventListener("change", sync);
+    return () => mediaQuery.removeEventListener("change", sync);
+  }, []);
+
+  return isNativePhone;
+}
 
 type ImprovementRecord = {
   id: string;
@@ -458,6 +482,8 @@ function DesktopDashboard({
 
 export default function Prototype() {
   const keyboard = useKeyboard();
+  const { bottomInset } = useKeyboardInsets();
+  const useNativeScroll = useNativePhoneScroll();
   const [initialDraft] = useState(loadDraft);
   const [view, setView] = useState<"capture" | "records">("capture");
   const [line, setLine] = useState<LineName>(initialDraft.line);
@@ -476,7 +502,6 @@ export default function Prototype() {
   const [lastSavedAt, setLastSavedAt] = useState(initialDraft.savedAt);
   const [listLine, setListLine] = useState<"全部线体" | LineName>("全部线体");
   const [exporting, setExporting] = useState(false);
-  const [listening, setListening] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -518,22 +543,6 @@ export default function Prototype() {
       setEffect(result.effect);
     } catch (error) { window.alert(error instanceof Error ? error.message : "整理失败，请稍后重试"); }
     finally { setOptimizing(false); }
-  };
-
-  const startVoice = () => {
-    type Recognition = { lang: string; continuous: boolean; interimResults: boolean; onresult: (event: { results: ArrayLike<{ 0: { transcript: string } }> }) => void; onend: () => void; start: () => void };
-    type RecognitionCtor = new () => Recognition;
-    const speechWindow = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
-    const SpeechRecognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
-    if (!SpeechRecognition) { window.alert("当前浏览器暂不支持语音识别，请使用键盘输入"); return; }
-    const recognition = new SpeechRecognition();
-    recognition.lang = "zh-CN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onresult = (event) => setRaw((current) => `${current}${event.results[0][0].transcript}`);
-    recognition.onend = () => setListening(false);
-    setListening(true);
-    recognition.start();
   };
 
   const beginEdit = (record: ImprovementRecord) => {
@@ -604,10 +613,11 @@ export default function Prototype() {
   };
 
   const mobileRecords = listLine === "全部线体" ? records : records.filter((record) => record.line === listLine);
+  const ScrollContainer = useNativeScroll ? NativeMobileScroll : MobileScroll;
 
   return (
-    <>
-      <MobileScroll className="app-screen">
+    <div className="kaizen-composer" style={{ "--save-bottom-inset": `${bottomInset}px` } as CSSProperties}>
+      <ScrollContainer className="app-screen">
         <main className="screen-content kaizen-app" aria-label="改善快记">
           <header className="mobile-header">
             <div><span className="mobile-kicker">现场改善 · 快速记录</span><h1>{view === "capture" ? "改善快记" : "改善清单"}</h1></div>
@@ -637,7 +647,7 @@ export default function Prototype() {
                   <div className={`type-match-hint ${typeWillBeCorrected ? "corrected" : ""}`}><MagicWandIcon /><span>内容匹配：<strong>{resolvedType}</strong></span><em>{typeChoice === AUTO_TYPE ? "保存时自动使用" : typeWillBeCorrected ? "与选择不一致，保存时自动校正" : "与所选类型一致"}</em></div>
                   <div className="raw-input-wrap">
                     <KeyboardTextarea value={raw} onChange={(event) => setRaw(event.target.value)} maxLength={500} placeholder="例如：原来怎么做、现在改了什么、节省了多少时间……" />
-                    <div className="input-tools"><span>{raw.length}/500</span><button type="button" className={listening ? "listening" : ""} onClick={startVoice}><SpeakerLoudIcon />{listening ? "正在听" : "语音"}</button></div>
+                    <div className="raw-count">{raw.length}/500</div>
                   </div>
                   <button className="optimize-button" type="button" onClick={() => void optimize()} disabled={optimizing}>{optimizing ? <ReloadIcon className="spin" /> : <MagicWandIcon />}{optimizing ? "正在整理" : HAS_ONLINE_AI ? "AI整理表述" : "智能整理表述"}</button>
                   <div className="ai-mode-note"><CheckCircledIcon />{HAS_ONLINE_AI ? "在线AI服务已连接" : "本地规则引擎 · 无需联网"}<span>{HAS_ONLINE_AI ? "由已配置模型生成" : "正式版可接入AI模型"}</span></div>
@@ -663,7 +673,6 @@ export default function Prototype() {
                 </section>
               </div>
 
-              <div className="save-zone"><button className="save-button" type="button" onClick={save}>{saved ? <CheckCircledIcon /> : editingId ? <Pencil2Icon /> : <FileTextIcon />}{saved ? "已保存" : editingId ? "保存修改" : "保存改善"}</button><span>{formatChineseDate(new Date())}</span></div>
             </div>
           ) : (
             <section className="records-screen">
@@ -676,9 +685,10 @@ export default function Prototype() {
             </section>
           )}
         </main>
-      </MobileScroll>
+      </ScrollContainer>
+      {view === "capture" ? <div className="save-zone" data-testid="save-bar"><button className="save-button" type="button" onClick={save}>{saved ? <CheckCircledIcon /> : editingId ? <Pencil2Icon /> : <FileTextIcon />}{saved ? "已保存" : editingId ? "保存修改" : "保存改善"}</button><span>{formatChineseDate(new Date())}</span></div> : null}
       {toastMessage ? <div className="save-toast"><CheckCircledIcon />{toastMessage}</div> : null}
       {createPortal(<DesktopDashboard records={records} onEdit={beginEdit} onDelete={deleteRecord} />, document.body)}
-    </>
+    </div>
   );
 }

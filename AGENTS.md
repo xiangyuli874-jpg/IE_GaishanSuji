@@ -6,6 +6,9 @@
 
 - On real phone-sized browser viewports, render the app directly at the browser viewport size. Do not show the prototype device bezel, device picker, simulated status bar, home indicator, cursor, or keyboard.
 - Every saved improvement record must expose both edit and delete actions on mobile and desktop. Editing updates the existing record instead of creating a duplicate; deletion requires confirmation.
+- Voice entry uses an explicit click-to-start / click-to-stop interaction. Keep a concise status hint visible, handle microphone permission or browser-support failures in place, and never imply press-and-hold input.
+- Keep the persistent save bar outside `MobileScroll` as app-owned fixed chrome. Reserve bottom space in the scrollable form so ordinary taps and drags never pull the page to the save bar.
+- On real phone-sized browser viewports, use the browser's native vertical scrolling instead of the prototype runtime's simulated momentum scrolling. Keep simulated scrolling only for the desktop device-preview experience.
 
 In ChatGPT Work Mode, run `sites-preview start "$PWD"`, open `http://terminal.local:4173/` in the cloud browser, and verify the rendered app and its primary interactions. Keep that preview open and tell the user to inspect it in the cloud browser; do not present the local URL as a user-facing chat link. In Codex Desktop, run the local server yourself, open the preview in the in-app browser, and provide the clickable local URL. Do not deploy to Sites unless the user explicitly asks to share, publish, or deploy. Do not give the user server-start instructions when you can run it.
 

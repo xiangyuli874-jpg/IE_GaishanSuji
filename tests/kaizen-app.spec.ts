@@ -40,6 +40,43 @@ test("mobile production layout fills the browser viewport without prototype devi
   expect(screenBox?.height).toBeCloseTo(844, 0);
 });
 
+test("a real phone browser uses native scrolling instead of simulated momentum", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.goto(APP_URL);
+
+  const scroll = page.getByTestId("mobile-scroll");
+  await expect(scroll).toHaveAttribute("data-scroll-mode", "native");
+  await expect(page.locator(".native-mobile-scroll")).toBeVisible();
+  await expect(scroll).toHaveCSS("touch-action", "pan-y");
+  await context.close();
+});
+
+test("mobile quick record does not expose an unreliable browser voice-entry control", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(APP_URL);
+
+  await expect(page.getByRole("button", { name: /语音输入/ })).toHaveCount(0);
+  await expect(page.getByText("点击开始后说话，再次点击结束")).toHaveCount(0);
+});
+
+test("mobile save bar is outside the scroll surface so content taps do not pull the page to the bottom", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.goto(APP_URL);
+
+  const scroll = page.getByTestId("mobile-scroll");
+  const saveBar = page.getByTestId("save-bar");
+  await expect(scroll.locator('[data-testid="save-bar"]')).toHaveCount(0);
+  await expect(saveBar).toBeVisible();
+
+  await scroll.evaluate((element) => { element.scrollTop = 40; });
+  const beforeTap = await scroll.evaluate((element) => element.scrollTop);
+  await page.locator(".line-section").tap();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBeCloseTo(beforeTap, 0);
+  await context.close();
+});
+
 test("a saved record can be edited without creating a duplicate and remains changed after reload", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(APP_URL);
