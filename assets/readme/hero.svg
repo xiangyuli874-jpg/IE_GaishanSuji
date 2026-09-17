@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+  <title id="title">改善快记：生产现场改善记录应用</title>
+  <desc id="desc">从现场描述、智能整理到改善台账和 Excel 导出的三步流程。</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#075b9b"/>
+      <stop offset="1" stop-color="#063f72"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="390" rx="28" fill="#f5f8fa"/>
+  <rect width="1200" height="390" rx="28" fill="url(#panel)"/>
+  <path d="M0 305H1200M0 348H1200" stroke="#fff" stroke-opacity=".11"/>
+  <g fill="#fff" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="64" y="68" font-size="18" font-weight="700" letter-spacing="3" fill="#bde9f7">PRODUCTION IMPROVEMENT LOG</text>
+    <text x="64" y="145" font-size="64" font-weight="800">改善快记</text>
+    <text x="64" y="184" font-size="25" font-weight="600">把现场改善，变成可复核的行动记录</text>
+    <text x="64" y="229" font-size="20" fill="#d7ecf7">面向产线的快速记录、规范整理、台账维护与 Excel 导出</text>
+    <g transform="translate(64 276)">
+      <rect width="148" height="40" rx="20" fill="#fff" fill-opacity=".15"/>
+      <text x="24" y="26" font-size="18" font-weight="700">React + Vite</text>
+      <rect x="162" width="128" height="40" rx="20" fill="#fff" fill-opacity=".15"/>
+      <text x="186" y="26" font-size="18" font-weight="700">本地优先</text>
+    </g>
+  </g>
+  <g transform="translate(660 45)" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif">
+    <rect width="474" height="300" rx="18" fill="#fff"/>
+    <rect width="474" height="48" rx="18" fill="#eaf4f9"/>
+    <path d="M0 48H474" stroke="#d6e0e7"/>
+    <circle cx="30" cy="24" r="7" fill="#18a7d8"/>
+    <text x="48" y="30" font-size="19" font-weight="800" fill="#17212b">现场改善 · 快速记录</text>
+    <g transform="translate(28 77)">
+      <circle cx="18" cy="18" r="18" fill="#075b9b"/>
+      <text x="18" y="25" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">1</text>
+      <text x="53" y="16" font-size="20" font-weight="800" fill="#17212b">现场描述</text>
+      <text x="53" y="40" font-size="18" fill="#667584">记录原来怎么做、现在改了什么</text>
+      <path d="M18 55V78" stroke="#9bc0d8" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="18" cy="99" r="18" fill="#18a7d8"/>
+      <text x="18" y="106" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">2</text>
+      <text x="53" y="97" font-size="20" font-weight="800" fill="#17212b">智能整理</text>
+      <text x="53" y="121" font-size="18" fill="#667584">生成改善内容与改善效果</text>
+      <path d="M18 136V159" stroke="#9bc0d8" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="18" cy="180" r="18" fill="#f59e0b"/>
+      <text x="18" y="187" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">3</text>
+      <text x="53" y="178" font-size="20" font-weight="800" fill="#17212b">台账与导出</text>
+      <text x="53" y="202" font-size="18" fill="#667584">筛选、编辑、删除并导出 Excel</text>
+    </g>
+  </g>
+</svg>
